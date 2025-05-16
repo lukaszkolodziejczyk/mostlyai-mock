@@ -68,7 +68,7 @@ def sample_mock_data(
 
 
 def main():
-    mcp.run(transport="stdio")
+    mcp.run(transport="sse")
 
 
 if __name__ == "__main__":

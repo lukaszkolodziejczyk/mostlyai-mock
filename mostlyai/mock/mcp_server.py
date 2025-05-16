@@ -68,7 +68,7 @@ def sample_mock_data(
 
 
 def main():
-    mcp.run(transport="sse")
+    mcp.run(transport="streamable-http", host="127.0.0.1", port=9000)
 
 
 if __name__ == "__main__":

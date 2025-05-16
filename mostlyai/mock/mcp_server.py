@@ -1,6 +1,7 @@
 import os
 import tempfile
 import zipfile
+import requests
 
 from fastmcp import Context, FastMCP
 
@@ -35,6 +36,17 @@ def _store_locally(data: dict) -> str:
 
     return os.path.abspath(zip_path)
 
+def _store_in_file_io(data: dict) -> str:
+    zip_path = _store_locally(data)
+    url = "https://store1.gofile.io/uploadFile"
+    with open(zip_path, "rb") as file:
+        response = requests.post(url, files={"file": file})
+    if response.status_code == 200 and response.json()["status"] == "ok":
+        download_url = response.json()["data"]["downloadPage"]
+        return download_url
+    else:
+        raise Exception(f"Failed to upload file: {response.text}")
+
 
 @mcp.tool(description=SAMPLE_MOCK_TOOL_DESCRIPTION)
 def sample_mock_data(
@@ -63,12 +75,15 @@ def sample_mock_data(
         return_type="dict",
     )
     ctx.info(f"Generated mock data for `{len(tables)}` tables")
-    url = _store_locally(data)
+    if os.getenv("STORE_TO_FILE_IO"):
+        url = _store_in_file_io(data)
+    else:
+        url = _store_locally(data)
     return url
 
 
 def main():
-    mcp.run(transport="streamable-http", host="127.0.0.1", port=9000)
+    mcp.run()
 
 
 if __name__ == "__main__":
